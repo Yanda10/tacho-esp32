@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor RPM Tachometer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 2.5rem 3rem;
+      text-align: center;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #0f172a;
+      margin-bottom: 1.5rem;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+    .dot.online {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+    .rpm-value {
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #38bdf8;
+      font-variant-numeric: tabular-nums;
+    }
+    .unit {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      letter-spacing: 3px;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+    .meta {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="status">
+      <span id="dot" class="dot"></span>
+      <span id="statusText">Menghubungkan...</span>
+    </div>
+    <div id="rpm" class="rpm-value">0</div>
+    <div class="unit">RPM</div>
+    <div id="lastUpdate" class="meta">Menunggu data sensor</div>
+  </div>
+
+  <script>
+    async function fetchRPM() {
+      try {
+        const res = await fetch('/api/rpm');
+        const data = await res.json();
+
+        document.getElementById('rpm').textContent = data.rpm;
+
+        const dot = document.getElementById('dot');
+        const statusText = document.getElementById('statusText');
+
+        if (data.online) {
+          dot.classList.add('online');
+          statusText.textContent = data.rpm > 0 ? 'ESP32 Online • Berputar' : 'ESP32 Online • Diam';
+        } else {
+          dot.classList.remove('online');
+          statusText.textContent = 'ESP32 Offline';
+        }
+
+        if (data.updatedAt) {
+          const waktu = new Date(data.updatedAt).toLocaleTimeString('id-ID');
+          document.getElementById('lastUpdate').textContent = `Update terakhir: ${waktu}`;
+        }
+      } catch (err) {
+        document.getElementById('statusText').textContent = 'Gagal memuat API';
+      }
+    }
+
+    fetchRPM();
+    setInterval(fetchRPM, 1000); // Refresh tiap 1 detik
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "esp32-tachometer-monitor",
+  "type": "module",
+  "dependencies": {
+    "@upstash/redis": "^1.34.3"
+  }
+}
